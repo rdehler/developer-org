@@ -1,4 +1,4 @@
 developer-org
 =============
 
-Ray's developer Salesforce org
+Ray's developer Salesforce org, testing purposes only.
