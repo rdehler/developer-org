@@ -1,0 +1,264 @@
+<apex:page controller="VFRefController">
+<style>
+	h1 {
+		font-size: 24px;
+		display: block;
+	}
+	h2 {
+		font-size: 16px;
+		display: block;
+		padding-top: 24px;
+		border-top: 1px dashed black;
+	}
+</style>
+
+<script>
+function s() {
+	document.write(String.fromCharCode(123));
+}
+</script>
+
+<apex:pageBlock >
+<h1 class="head">Comprehensive Visual Reference of Visualforce Components (with samples)</h1>
+<h2 class="credits">Credits and Changelog</h2>
+<p class="description">Author: <a href="http://raydehler.com/">Ray Dehler</a> is a Senior Technical Consultant for Force.com at <a href="http://www.appirio.com">Appirio</a>.  This was originally published 2011-05-06 and posted to <a href="http://raydehler.com/cloud/">The Cloud Clod</a>.</p>
+
+<h2 class="toc">Table of Contents</h2>
+<ol>
+	<li><a href="#apex:actionFunction">apex:actionFunction</a></li>
+	<li><a href="#apex:actionPoller">apex:actionPoller</a></li>
+</ol>
+
+
+<a name="apex:actionFunction"></a><h2>apex:actionFunction</h2>
+<div class="description">
+	<p class="standard"><a href="http://www.salesforce.com/us/developer/docs/pages/Content/pages_compref_actionFunction.htm">Standard Component Documentation</a></p>
+	<p>This component wraps an AJAX request back to the controller.  This is a very useful and handy way to do a partial page refresh with server side processing.</p>
+	<p>A few caveats: Must be enclosed in an apex:form.  Make sure to have an enclosing outputLabel around the portion you want to rerender, assuming a rerender is requested.</p>
+</div>
+<div class="sample">
+	<h3>Sample Code:</h3>
+	<pre>
+Snip:<br />
+&lt;apex:actionFunction name="functionName"
+    action="<script>s();</script>!apexMethodName}"
+    reRender="idToRerender"
+/&gt;
+  
+Snip:<br />
+&lt;apex:outputPanel id="idToRerender"&gt;
+    &lt;apex:inputField value="<script>s();</script>!obj.Value__c}" required="true" onChange="functionName"/&gt;
+&amp;lt;/apex:outputPanel&gt;
+  
+Snip:<br />
+public PageReference apexMethodName() {
+    obj.Value__c = 'Some other value';
+    return null;
+}
+	</pre>
+	
+	<h3>In Action:</h3>
+	<apex:form >
+		<apex:actionFunction name="actionFunctionSample" action="{!actionFunctionSample}" reRender="actionFunctionSample" />
+		<apex:outputLabel id="actionFunctionSample">
+			<input type="text" value="{!account.Name}" />
+			<input type="button" onclick="actionFunctionSample();" value="Make AJAX Request"></input>
+		</apex:outputLabel>
+	</apex:form>
+</div>
+<a name="apex:actionPoller"></a><h2>apex:actionPoller</h2>
+<div class="description">
+	<p class="standard"><a href="http://www.salesforce.com/us/developer/docs/pages/Content/pages_compref_actionPoller.htm">Standard Component Documentation</a></p>
+	<p>This component performs an AJAX request repeatedly after a timeout.  It relies on the setTimeout() javascript method.</p>
+</div>
+<div class="sample">
+	<h3>Sample Code:</h3>
+	<pre>
+Snip:<br />
+		
+	</pre>
+	
+	<h3>In Action:</h3>
+	<apex:form >
+		<div style="display:none;" id="actionPoller">
+			<apex:actionPoller action="{!actionPollerSample}" rerender="actionPollerSample" interval="5" />
+		</div>
+		<apex:outputLabel id="actionPollerSample">
+			<input type="text" value="{!i}" />
+			<input type="button" onclick="document.getElementById('actionPoller').style.display='block';" value="Click Me and wait 5 seconds!" />
+		</apex:outputLabel>
+	</apex:form>
+</div>
+<!-- 
+<apex:actionPoller -->
+<!-- 
+<apex:actionRegion
+ -->
+<!-- 
+<apex:actionStatus -->
+<!-- 
+<apex:actionSupport
+ -->
+<!-- 
+<apex:attribute -->
+<!-- 
+<apex:column
+ -->
+<!-- 
+<apex:commandButton -->
+<!-- 
+<apex:commandLink
+ -->
+<!-- 
+<apex:component -->
+<!-- 
+<apex:componentBody
+ -->
+<!-- 
+<apex:composition -->
+<!-- 
+<apex:dataList
+ -->
+<!-- 
+<apex:dataTable -->
+<!-- 
+<apex:define
+ -->
+<!-- 
+<apex:detail -->
+<!-- 
+<apex:enhancedList
+ -->
+<!-- 
+<apex:facet -->
+<!-- 
+<apex:flash
+ -->
+<!-- 
+<apex:form -->
+<!-- 
+<apex:iframe
+ -->
+<!-- 
+<apex:image -->
+<!-- 
+<apex:include
+ -->
+<!-- 
+<apex:includeScript -->
+<!-- 
+<apex:inlineEditSupport
+ -->
+<!-- 
+<apex:inputCheckbox -->
+<!-- 
+<apex:inputField -->
+<!-- 
+<apex:inputFile -->
+<!-- 
+<apex:inputHidden
+ -->
+<!-- 
+<apex:inputSecret -->
+<!-- 
+<apex:inputText
+ -->
+<!-- 
+<apex:inputTextarea -->
+<!-- 
+<apex:insert
+ -->
+<!-- 
+<apex:ListViews -->
+<!-- 
+<apex:message
+ -->
+<!-- 
+<apex:messages -->
+<!-- 
+<apex:outputField
+ -->
+<!-- 
+<apex:outputLabel -->
+<!-- 
+<apex:outputLink
+ -->
+<!-- 
+<apex:outputPanel -->
+<!-- 
+<apex:outputText
+ -->
+<!-- 
+<apex:page -->
+<!-- 
+<apex:pageBlock -->
+<!-- 
+<apex:pageBlockButtons -->
+<!-- 
+<apex:pageBlockSection
+ -->
+<!-- 
+<apex:pageBlockSectionItem -->
+<!-- 
+<apex:pageBlockTable
+ -->
+<!-- 
+<apex:pageMessage -->
+<!-- 
+<apex:pageMessages
+ -->
+<!-- 
+<apex:panelBar -->
+<!-- 
+<apex:panelBarItem
+ -->
+<!-- 
+<apex:panelGrid -->
+<!-- 
+<apex:panelGroup
+ -->
+<!-- 
+<apex:param -->
+<!-- 
+<apex:relatedList
+ -->
+<!-- 
+<apex:repeat -->
+<!-- 
+<apex:scontrol
+ -->
+<!-- 
+<apex:sectionHeader -->
+<!-- 
+<apex:selectCheckboxes
+ -->
+<!-- 
+<apex:selectList -->
+<!-- 
+<apex:selectOption
+ -->
+<!-- 
+<apex:selectOptions -->
+<!-- 
+<apex:selectRadio
+ -->
+<!-- 
+<apex:stylesheet -->
+<!-- 
+<apex:tab
+ -->
+<!-- 
+<apex:tabPanel -->
+<!-- 
+<apex:toolbar
+ -->
+<!-- 
+<apex:toolbarGroup -->
+<!-- 
+<apex:variable
+ -->
+<!-- 
+<apex:vote -->
+
+</apex:pageBlock>
+</apex:page>

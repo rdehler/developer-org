@@ -1,0 +1,5 @@
+<apex:page standardController="Contact">
+<script>
+document.getElementById('con2_ileinner').style = "display:none;"
+</script>
+</apex:page>

@@ -1,0 +1,92 @@
+<apex:page >
+<head>
+<script language="JavaScript" type="text/javascript">
+//http://www.interactiveties.com/b_ip_ranges.php
+var startingPoint = 0;
+
+function initiatePage() {
+/*
+    var a = startingPoint;
+    var docHTML = "<table class=\"list\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">";
+    docHTML += "<tr class=\"headerRow\">";
+    docHTML += "<th scope=\"col\" class=\"\">IP Start</th>";
+    docHTML += "<th scope=\"col\" class=\"\">IP End</th>";
+    docHTML += "<th scope=\"col\" class=\"\">Status</th>";
+    docHTML += "<th scope=\"col\" class=\"\">&nbsp;</th>";
+    docHTML += "</tr>";
+    while (a<=2) {
+        docHTML += "<tr class=\"dataRow ";
+        if (a%2 == 0) {
+            docHTML += "even";
+        } else {
+            docHTML += "odd";
+        }
+        if (a == 2) {
+            docHTML += " last\"";
+        } else if (a == 0) {
+            docHTML += " first\"";
+        } else {
+            docHTML += "\"";
+        }
+        //docHTML += " onmouseout=\"if (typeof(hiOff) != 'undefined'){hiOff(this);}\" onfocus=\"if (typeof(hiOn) != 'undefined'){hiOn(this);}\" onblur=\"if (typeof(hiOff) != 'undefined'){hiOff(this);}\" onmouseover=\"if (typeof(hiOn) != 'undefined'){hiOn(this);}\">";
+        docHTML += "<td class=\"dataCell\">"+a+".0.0.0</td>";
+        docHTML += "<td class=\"dataCell\">"+(a+1)+".255.255.255</td>";
+        docHTML += "<td class=\"dataCell\" id=\""+a+"_Updated\">Updating...</td>";
+        docHTML += "<td class=\"dataCell\"><iframe id=\""+a+"\" name=\""+a+"\" src=\"/05G/e?retURL=%2F05G&IpStartAddress="+a+".0.0.0&IpEndAddress="+(a+1)+".255.255.255&save=1\" width=\"0\" height=\"0\" scrolling=\"Yes\" frameborder=\"0\"></iframe></td>";
+        docHTML += "</tr>";
+        a = a+2;
+    }
+    docHTML += "</table>";
+    docHTML += "<div class=\"pShowMore\">Click here validate the Org network access: <a href=\"/05G\" target=\"_parent\">View Network Access</a></div>";
+    document.getElementById("output").innerHTML = docHTML;
+    setTimeout("runReSaveFunction()",10000);
+*/
+
+}
+
+function runReSaveFunction() {
+/*
+    var a = startingPoint;
+    while (a<=6) {
+        var frame = document.getElementById(a);
+        var insideFrame = frame.contentWindow;
+        var confirmationKeyElement = insideFrame.document.getElementById("_CONFIRMATIONTOKEN")
+        if (confirmationKeyElement != null) {
+            var confirmationKey = confirmationKeyElement.value;
+            insideFrame.document.location.href = insideFrame.document.location.href+"&_CONFIRMATIONTOKEN="+confirmationKey;
+            var text = "<span style=\"color: #009900;\">Success</span>";
+        } else {
+            var text = "<span style=\"color: #FF0000;\">Failed!</span>";
+        }
+        document.getElementById(a+"_Updated").innerHTML = text;
+        a = a+2; //increment the counter
+    }
+*/
+}
+</script>
+</head>
+<body>
+<iframe src="https://na10.salesforce.com/05G" width="800" />
+<script>
+    document.domain = 'com';
+    alert(document.domain);
+    var ifr = document.getElementsByTagName('IFRAME')[0];
+    ifr.onload = function(e){
+    alert('hi');
+        //will log the string "BODY" in the console
+        alert(ifr.contentWindow.document);
+    };
+</script>
+
+<input type="button" value="click me" onclick="initiatePage();" />
+<div class="bPageTitle"><div class="ptBody secondaryPalette"><div class="content"><img src="/s.gif" alt="Home" class="pageTitleIcon" /><h1 class="pageType">IP Ranges<span class="titleSeparatingColon">:</span></h1><h2 class="pageDescription"> Open Up Security</h2><div class="blank">&nbsp;</div></div></div></div>
+<div class="filterOverview">This page uses a series of IFRAME tags to update the IP Range settings for the org. It may take a few minutes for all of the IP ranges to update correctly and you will know that the loading is complete when each row in the table below has a status set to "Success" or "Failed!". At the bottom of the screen there is a link to the network settings page.  Click this link to validate that the updates from this sControl actually finished successfully.<br /><div style="font-weight: bold;">Note: any rows that fail can either be entered manually or you can re-run this sControl to see if it catches them second time through...</div></div>
+<div class="bRelatedList">
+    <div class="bPageBlock secondaryPalette"><div class="pbHeader"><table cellpadding="0" cellspacing="0" border="0"><tr><td class="pbTitle"><img src="/s.gif" alt="" title="" width="1" height="1" class="minWidth" /><img src="/s.gif" alt="" class="relatedListIcon" /><h3 class="bodyBold">Results Area</h3></td><td class="pbButton">&nbsp;</td></tr></table></div>
+        <div class="pbBody" id="output"></div>
+        <div class="pbFooter secondaryPalette"><div class="bg"></div></div>
+    </div>
+    <div class="listElementBottomNav"></div>
+</div>
+</body>
+</apex:page>

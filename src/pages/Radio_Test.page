@@ -1,0 +1,35 @@
+<apex:page controller="RadioTestController">
+<apex:form >
+<div>
+Number
+ <apex:selectRadio value="{!radioTest.Number_Test__c}">
+    <apex:selectOption itemValue="1" itemLabel="1"/>
+    <apex:selectOption itemValue="2" itemLabel="2"/>
+    <apex:selectOption itemValue="3" itemLabel="3"/>
+    <apex:selectOption itemValue="4" itemLabel="4"/>
+    <apex:selectOption itemValue="5" itemLabel="5+"/>
+  </apex:selectRadio>
+</div><div>
+String
+ <apex:selectRadio value="{!radioTest.String_Test__c}">
+    <apex:selectOption itemValue="1" itemLabel="1"/>
+    <apex:selectOption itemValue="2" itemLabel="2"/>
+    <apex:selectOption itemValue="3" itemLabel="3"/>
+    <apex:selectOption itemValue="4" itemLabel="4"/>
+    <apex:selectOption itemValue="5" itemLabel="5+"/>
+  </apex:selectRadio>
+</div><div>
+Picklist
+  <apex:selectRadio value="{!radioTest.Picklist_Test__c}">
+    <apex:selectOption itemValue="1" itemLabel="1"/>
+    <apex:selectOption itemValue="2" itemLabel="2"/>
+    <apex:selectOption itemValue="3" itemLabel="3"/>
+    <apex:selectOption itemValue="4" itemLabel="4"/>
+    <apex:selectOption itemValue="5" itemLabel="5+"/>
+  </apex:selectRadio>  
+</div>
+  <apex:commandButton action="{!save}" value="Save" />
+  <apex:messages />
+
+</apex:form>                            
+</apex:page>

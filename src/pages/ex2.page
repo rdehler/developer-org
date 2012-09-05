@@ -1,0 +1,13 @@
+<apex:page standardController="Account">
+  <apex:form >
+    <apex:pageBlock title="Special Account View">
+      <ul>
+        <li>Id: {!Account.id}</li>
+        <li>Name: {!Account.name}</li>
+        <li><apex:inputField value="{!Account.BillingState}"/></li>
+        <li><apex:inputField value="{!Account.Type}"/></li>
+      </ul>
+      <apex:commandButton action="{!save}" value="save changes"/>
+    </apex:pageBlock>
+  </apex:form>
+</apex:page>

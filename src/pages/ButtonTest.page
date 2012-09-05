@@ -1,0 +1,13 @@
+<apex:page >
+<apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js" />
+<apex:form id="theForm">
+<apex:commandButton id="buttonToEnable" disabled="true" value="Save" />
+<apex:commandButton id="button2" disabled="false" value="Cancel" />
+</apex:form>
+<script>
+$(document).ready(function() {
+$('#"{!$Component.theForm:buttonToEnable}"').removeClass('btnDisabled');
+alert('done!');
+});
+</script>
+</apex:page>

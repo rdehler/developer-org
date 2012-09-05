@@ -1,0 +1,1030 @@
+<apex:page controller="DunkinFrancishingAppController" showheader="false" id="pg" cache="false">
+  <!-- COMPONENTS REGION #START-->
+  <c:disablescreen />
+  <!-- COMPONENTS REGION #ENDS -->
+  <style>
+    .hearCheck td label{
+      font-size:11px;
+    }
+    .bPageBlock .detailList .labelCol {
+      text-align:left;
+    }
+  </style>
+  <apex:composition template="{!$Site.Template}">
+    <apex:define name="body">
+      <!-- Add dummy div just to get collapsible (twistsection) function on the page -->
+      <div id="dummyDiv">
+        <apex:pageBlock rendered="true">
+          <apex:pageBlockSection collapsible="true">
+          </apex:pageBlockSection>
+        </apex:pageBlock>
+      </div>
+      <script>
+        /* hide dummy Div */
+        var showFld = false;
+        var showGeneralFlds = false;
+        var dummyDiv = document.getElementById('dummyDiv');
+        if(dummyDiv != null){
+          dummyDiv.style.display = 'none';
+        }
+        
+        /**
+         * Development Type (Site Type Interest) On Change event Handler. This method
+         * - clear selected sub type values from input hidden
+         * - Call action function to render the dependent fields
+         */
+        function siteInterectOnChangeJS(val) {
+          document.getElementById('pg:SiteTemplate:frm:inputhdnSubSiteIntrst').value = '';
+          siteInterectOnChange(val);
+        }
+      </script>
+      
+      <apex:form id="frm">
+        <apex:inputHidden value="{!documentName}" id="inputhdnResumeName"/>
+        <apex:actionStatus id="stat" onStart="showDiv();" onStop="hideDiv();"/>
+        
+        <!-- ACTION FUNCTIONS REGION #START-->
+        <apex:actionFunction name="buildOnChange" action="{!buildOnChange}" reRender="frm" status="stat" immediate="true" onComplete="hideDiv();">
+          <apex:param name="buildOrBuy" assignTo="{!CurrentLead.Build_or_Buy__c}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="franchisee1OnChange" action="{!reQueryCountyInfo}" reRender="frm" status="stat" immediate="true">
+          <apex:param name="franchisee1" assignTo="{!CurrentLead.Are_you_an_existing_franchisee__c}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="havePCNumberJS" action="{!doNothing}" reRender="frm" status="stat" immediate="true">
+          <apex:param name="havePC" assignTo="{!havePCNumber}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="countryChange" action="{!countryChange}" reRender="frm" immediate="true" status="stat">
+          <apex:param name="cntry" assignTo="{!CurrentLead.Country_Interest__c}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="brandOnChange" action="{!reQueryCountyInfo}" reRender="frm" status="stat" immediate="true">
+          <apex:param name="brnd" assignTo="{!CurrentLead.Brand_Interest__c}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="siteInterectOnChange" action="{!reQueryCountyInfo}" reRender="frm" immediate="true" status="stat">
+          <apex:param name="siteInterest" assignTo="{!CurrentLead.Site_Type_Interest__c}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="corpOnChange" action="{!doNothing}" reRender="pbsCorpInfo" status="stat" immediate="true">
+          <apex:param name="applyCorp" assignTo="{!CurrentLead.Applying_as_part_of_a_corporation__c}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="partnerOnChange" action="{!hidePartnerForm}" reRender="pbsPartnerInfo, pbsCorpInfo" status="stat" immediate="true">
+          <apex:param name="havePartner" assignTo="{!CurrentLead.Will_you_have_partners__c}" value=""/>
+        </apex:actionFunction>
+        
+         <apex:actionFunction name="devUnitesOnChange" action="{!doNothing}" reRender="frm" status="stat" immediate="true">
+          <apex:param name="devUnits" assignTo="{!CurrentLead.How_many_units_do_you_plan_to_develop__c}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="searchCounty" action="{!searchCounty}" reRender="pnlPCounty, pnlPCountyMessage" immediate="true" status="stat">
+          <apex:param name="state" assignTo="{!selectedState}" value=""/>
+          <apex:param name="city" assignTo="{!selectedCity}" value=""/>
+          <apex:param name="franc_p" assignTo="{!CurrentLead.Are_you_an_existing_franchisee__c}" value=""/>
+          <apex:param name="dev_p" assignTo="{!CurrentLead.Site_Type_Interest__c}" value=""/>
+          <apex:param name="msr_pri" assignTo="{!primaryCountyMsg}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="searchSecondaryCounty" action="{!searchSecondaryCounty}" reRender="pnlSCounty, pnlSCountyMessage" immediate="true" status="stat">
+          <apex:param name="state_secondary" assignTo="{!selectedSecondaryState}" value=""/>
+          <apex:param name="city_secondary" assignTo="{!selectedSecondaryCity}" value=""/>
+          <apex:param name="franc_s" assignTo="{!CurrentLead.Are_you_an_existing_franchisee__c}" value=""/>
+          <apex:param name="dev_s" assignTo="{!CurrentLead.Site_Type_Interest__c}" value=""/>
+          <apex:param name="bol_s" assignTo="{!defaultDisplay}" value=""/>
+          <apex:param name="msr_sec" assignTo="{!primaryCountyMsg}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="searchTertiaryCounty" action="{!searchTertiaryCounty}" reRender="pnlTCounty, pnlTCountyMessage" immediate="true" status="stat">
+          <apex:param name="state_tertiary" assignTo="{!selectedTertiaryState}" value=""/>
+          <apex:param name="city_tertiary" assignTo="{!selectedTertiaryCity}" value=""/>
+          <apex:param name="franc_t" assignTo="{!CurrentLead.Are_you_an_existing_franchisee__c}" value=""/>
+          <apex:param name="dev_t" assignTo="{!CurrentLead.Site_Type_Interest__c}" value=""/>
+          <apex:param name="bol_t" assignTo="{!defaultDisplay}" value=""/>
+          <apex:param name="msr_ter" assignTo="{!primaryCountyMsg}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="pCountyChange" action="{!primaryCountyChange}" reRender="pnlPCountyMessage" immediate="true" status="stat">
+          <apex:param name="county" assignTo="{!CurrentLead.Primary_State_County_Interest__c}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="sCountyChange" action="{!secondaryCountyChange}" reRender="pnlSCountyMessage" immediate="true" status="stat">
+          <apex:param name="county" assignTo="{!CurrentLead.Secondary_State_County_Interest__c}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="tCountyChange" action="{!tertiaryCountyChange}" reRender="pnlTCountyMessage" immediate="true" status="stat">
+          <apex:param name="county" assignTo="{!CurrentLead.Tertiary_State_County_Interest__c}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="showPartnerForm" action="{!showPartnerForm}" status="stat" reRender="pbsPartnerInfo" immediate="true"/>
+        
+        <apex:actionFunction name="addPartner" action="{!addPartner}" status="stat" reRender="pbsPartnerInfo, pbsCorpInfo" immediate="true">
+          <apex:param name="a" assignTo="{!CurrentPA.Partner_Last_Name__c}" value=""/>
+          <apex:param name="b" assignTo="{!CurrentPA.Partner_First_name__c}" value=""/>
+          <apex:param name="c" assignTo="{!CurrentPA.Partner_Email__c}" value=""/>
+          <apex:param name="d" assignTo="{!CurrentPA.Primary_Phone__c}" value=""/>
+        </apex:actionFunction>
+        
+        <!-- ACTION FUNCTION REGION #ENDS -->
+        
+        <!-- PAGE BLOCK #STARTS -->
+        <apex:pageBlock id="pb" mode="Edit">
+          <!-- SCRIPT TO SHOW WHO REFER DIV and LIQUID & NET ASSETS FIELDS -->
+          <script>
+            function showWhoReferDiv() {
+              var paramArray = '{!selectedHowDidHearAboutus}';
+              if(paramArray.indexOf('Referred by Existing Franchisee') > 0 || showFld){
+                if(document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlRefered') != null)
+                  document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlRefered').style.display = '';
+                if(document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlInptRef') != null)
+                  document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlInptRef').style.display = '';
+              }else{
+                if(document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlRefered') != null)
+                  document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlRefered').style.display = 'none';
+                if(document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlInptRef') != null)
+                  document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlInptRef').style.display = 'none';
+              }
+              
+              
+              var subSites = '{!CurrentLead.Sub_Site_Type_Interest__c}';
+              if(subSites.indexOf('Other - Not listed') >= 0 || showGeneralFlds){
+                if(document.getElementById('fldNetWorth') != null)
+                  document.getElementById('fldNetWorth').style.display = 'none';
+                if(document.getElementById('fldLqdAssests') != null)
+                  document.getElementById('fldLqdAssests').style.display = 'none';
+              }else{
+                if(document.getElementById('fldNetWorth') != null)
+                  document.getElementById('fldNetWorth').style.display = '';
+                if(document.getElementById('fldLqdAssests') != null)
+                  document.getElementById('fldLqdAssests').style.display = '';
+              }
+            }
+          </script>
+        
+          <apex:pageMessages />
+          <apex:pageBlockButtons location="Bottom">
+            <apex:commandButton value="Cancel" action="{!cancel}" immediate="true"/>
+            <apex:commandButton value="Continue" action="{!page3}" rendered="{!showCompleteForm}"/>      
+          </apex:pageBlockButtons>
+          
+           
+          
+          
+          
+          <apex:pageBlockSection id="pbsOpportunity" columns="2" title="Search for Opportunity" collapsible="false">
+            <!-- Start Campaign Code -->
+           <!--  <apex:pageBlockSectionItem >
+                        <apex:outputLabel >Campaign Code<br/>(ex. CC-00123)</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputText value="{!selectedCampaign}"></apex:inputText>
+                        </apex:outputPanel>
+            </apex:pageBlockSectionItem> 
+             -->
+            
+            
+            
+            <apex:pageblockSectionItem dataStyle="padding-bottom:10px">
+              <apex:outputLabel >Which option are you interested in?</apex:outputLabel>
+              <apex:outputPanel styleClass="requiredInput" layout="block">
+                <div class="requiredBlock"></div>
+                <apex:selectRadio value="{!CurrentLead.Build_or_Buy__c}" onclick="javascript:if('{!CurrentLead.Build_or_Buy__c}'==this.value){return false;};buildOnChange(this.value);" layout="pageDirection">
+                  <apex:selectOption itemValue="Building a new restaurant" itemLabel="Building a new restaurant"/>
+                  <apex:selectOption itemValue="Purchasing an existing restaurant" itemLabel="Purchasing an existing restaurant"/>
+                </apex:selectRadio>
+              </apex:outputPanel>
+            </apex:pageblockSectionItem>
+            
+            <apex:pageblockSectionItem id="itemFranch">
+              <apex:outputLabel value="TEST"/>
+              <apex:selectRadio id="selFranc" value="{!CurrentLead.Are_you_an_existing_franchisee__c}" onclick="javascript:if('{!CurrentLead.Are_you_an_existing_franchisee__c}'==this.value){return false;};franchisee1OnChange(this.value);">
+                <apex:selectOption itemValue="Yes" itemLabel="Yes"/>
+                <apex:selectOption itemValue="No" itemLabel="No"/>
+              </apex:selectRadio>
+            </apex:pageblockSectionItem>
+                      
+            <apex:pageBlockSectionItem rendered="{!IF((CurrentLead.Build_or_Buy__c = 'Purchasing an existing restaurant'), true, false)}">
+              <apex:outputText value="Do you have a PC #"/>
+              <apex:outputPanel styleClass="requiredInput" layout="block">
+                <div class="requiredBlock"></div>
+                <apex:selectRadio value="{!havePCNumber}"  onclick="javascript:if('{!havePCNumber}'==this.value){return false;};havePCNumberJS(this.value);">
+                  <apex:selectOption itemValue="Yes" itemLabel="Yes"/>
+                  <apex:selectOption itemValue="No" itemLabel="No"/>
+                </apex:selectRadio>
+                <div class="errorMsg" style="display:{!IF(havePCNumber = 'No','','none')}">
+                  <apex:outputText value="TEST" escape="false"/>
+                </div>
+              </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            
+            <apex:pageblockSectionItem dataStyle="padding-bottom:10px" rendered="{!IF(CurrentLead.Build_or_Buy__c = ('Building a new restaurant'), true, false)}">
+              <apex:outputLabel >Which country are you interested in?</apex:outputLabel>
+              <apex:outputPanel styleClass="requiredInput" layout="block">
+                <div class="requiredBlock"></div>
+                <apex:selectRadio value="{!CurrentLead.Country_Interest__c}" layout="pageDirection" onclick="javascript:if('{!CurrentLead.Country_Interest__c}'==this.value){return false;};countryChange(this.value);">
+                  <apex:selectOption itemValue="United States" itemLabel="United States"/>
+                  <apex:selectOption itemValue="Canada" itemLabel="Canada"/>
+                </apex:selectRadio>
+                <div class="errorMsg" style="display:{!IF(AND(errorOnPage2, (CurrentLead.Country_Interest__c = '')),'','none')}">
+                  <strong>Error:</strong> You must select a value 
+                </div>
+              </apex:outputPanel>
+            </apex:pageblockSectionItem>
+            
+            <apex:pageBlockSectionItem rendered="{!IF(havePCNumber = 'Yes', true, false)}">
+              <apex:outputText value="PC Number"/>
+              <apex:outputPanel styleClass="requiredInput" layout="block">
+                <div class="requiredBlock"></div>
+                <apex:inputField id="inptProfileCenter" value="{!CurrentLead.Profit_Center__c}" required="true"/>
+                <div class="errorMsg" style="display:{!IF(isErrorPC,'','none')}">
+                  <strong>Error:</strong> PC information could not be found for PC # {!CurrentLead.Profit_Center__c}. Please enter another PC #.
+                </div>
+              </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            
+            <apex:pageblockSectionItem rendered="{!IF((CurrentLead.Are_you_an_existing_franchisee__c = 'Yes'), true, false)}">
+              <apex:outputPanel id="pnlExPCLabel">
+                <apex:outputText value="Existing Franchisee PC Number"/>
+                <a class="tooltip" href="javascript:void(0);">
+                  <apex:image url="{!URLFOR($Resource.DunkinSiteResources, 'images/help.JPG')}"/>
+                  <span>{!$ObjectType.Lead.Fields.Existing_Franchisee_PC_Number__c.inlineHelpText}</span>
+                </a>
+              </apex:outputPanel>
+              <apex:outputPanel id="pnlExPCFld">
+                <apex:inputField id="inptExProfileCenter" value="{!CurrentLead.Existing_Franchisee_PC_Number__c}"/>
+              </apex:outputPanel>
+            </apex:pageblockSectionItem>            
+            
+            <apex:pageblockSectionItem id="itemBrndIntrst" rendered="{!IF(CurrentLead.Build_or_Buy__c != 'Building a new restaurant', false, true)}">
+              <apex:outputLabel >Which brand(s) are you interested in?</apex:outputLabel>
+              <apex:outputPanel styleClass="requiredInput" layout="block">
+                <div class="requiredBlock"></div>
+                <apex:selectCheckboxes id="selBrndIntrst" value="{!selectedBrandInterests}" layout="pageDirection" onclick="brandOnChange(getBrandIntereset());">
+                  <apex:selectOptions value="{!listBrandInterests}"/>
+                </apex:selectCheckboxes>
+                <div class="errorMsg" style="display:{!IF(isError,'','none')}">
+                  <div class="requiredBlock"></div>
+                  <strong>Error:</strong> Dunkin Donuts is not available in Canada.
+                </div>
+                <div class="errorMsg" style="display:{!IF(AND(errorOnPage2, (currentLead.Brand_Interest__c = '')),'','none')}">
+                  <div class="requiredBlock"></div>
+                  <strong>Error:</strong> You must select a value 
+                </div>
+              </apex:outputPanel>
+            </apex:pageblockSectionItem>
+            
+       
+                        <apex:pageblockSectionItem id="numDev" rendered="{!IF(OR(AND(CurrentLead.Build_or_Buy__c = ('Building a new restaurant'), CurrentLead.Are_you_an_existing_franchisee__c = 'No'), AND(CurrentLead.Build_or_Buy__c = 'Purchasing an existing restaurant', havePCNumber = 'Yes')), true, false)}" >    
+                         <apex:outputLabel value="TEST" rendered="{!IF(OR(AND(CurrentLead.Build_or_Buy__c = ('Building a new restaurant'), CurrentLead.Are_you_an_existing_franchisee__c = 'No'), AND(CurrentLead.Build_or_Buy__c = 'Purchasing an existing restaurant', havePCNumber = 'Yes')), true, false)}"/>
+                            <apex:outputPanel styleClass="requiredInput" layout="block" style="float:left;">
+                            <div class="requiredBlock"></div>
+                             <apex:selectRadio style="float:left;" value="{!CurrentLead.How_many_units_do_you_plan_to_develop__c}" layout="pageDirection" onClick="javascript:if('{!CurrentLead.How_many_units_do_you_plan_to_develop__c}'==this.value){return false;};devUnitesOnChange(this.value);">
+                                <apex:selectOption itemValue="1" itemLabel="1"/>
+                                <apex:selectOption itemValue="2" itemLabel="2"/>
+                                <apex:selectOption itemValue="3" itemLabel="3"/>
+                                <apex:selectOption itemValue="4" itemLabel="4"/>
+                                <apex:selectOption itemValue="5" itemLabel="5+"/>
+                              </apex:selectRadio>
+                                <div class="errorMsg" style="display:{!IF(errorOnPage2,'','none')}">
+                                <div class="requiredBlock"></div>
+                                <strong>Error:</strong> You must select a value 
+                                </div>
+                            </apex:outputPanel>
+                        </apex:pageblockSectionItem>
+                        
+            
+            <apex:pageblockSectionItem id="itemDev" rendered="{!IF(OR((CurrentLead.Build_or_Buy__c != 'Building a new restaurant'),(CurrentLead.Country_Interest__c = 'Canada')), false, true)}">
+              <apex:outputLabel >Which development type are you interested in?</apex:outputLabel>
+              <apex:outputPanel >
+                <apex:outputPanel styleClass="requiredInput" layout="block" style="float:left;">
+                  <div class="requiredBlock"></div>
+                  <apex:selectRadio id="selDev" style="float:left;" value="{!CurrentLead.Site_Type_Interest__c}" onclick="javascript:if('{!CurrentLead.Site_Type_Interest__c}'==this.value){return false;};siteInterectOnChangeJS(this.value);" layout="pageDirection">
+                    <apex:selectOption itemValue="Traditional Locations" itemLabel="Traditional Locations"/>
+                    <apex:selectOption itemValue="Non-Traditional Locations" itemLabel="Non-Traditional Locations"/>
+                  </apex:selectRadio>
+                </apex:outputPanel>
+                <table>
+                  <tr><td><a class="tooltip" href="javascript:void(0);">
+                      <apex:image url="{!URLFOR($Resource.DunkinSiteResources, 'images/help.JPG')}"/>
+                      <span>TEST</span>
+                    </a>
+                  </td></tr>
+                  <tr><td>
+                  <a class="tooltip" href="javascript:void(0);">
+                      <apex:image url="{!URLFOR($Resource.DunkinSiteResources, 'images/help.JPG')}"/>
+                      <span>TEST</span>
+                    </a></td></tr>
+                </table>
+              </apex:outputPanel>
+            </apex:pageblockSectionItem>
+          </apex:pageBlockSection>
+          
+          <apex:pageBlockSection columns="1">
+            <apex:outputPanel id="NTText" rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}">
+              <apex:outputPanel rendered="{!IF(CurrentLead.Site_Type_Interest__c = ('Non-Traditional Locations'), true, false)}">
+                <p style="margin-bottom:10px">TEST</p>
+              </apex:outputPanel>
+            </apex:outputPanel>
+          </apex:pageBlockSection>
+          
+          <apex:pageBlockSection columns="1">
+            <apex:pageblockSectionItem rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}">
+              <apex:outputPanel id="pnlSubsiteLabel1">
+                <apex:outputLabel rendered="{!IF(CurrentLead.Site_Type_Interest__c = ('Non-Traditional Locations'), true, false)}">Non-Traditional Site Types (Please select at least one)</apex:outputLabel>
+              </apex:outputPanel>
+              <apex:outputPanel id="pnlSubsiteField"  rendered="{!IF(CurrentLead.Site_Type_Interest__c = ('Non-Traditional Locations'), true, false)}">
+                <apex:repeat value="{!lstWrapperInterests}" var="opt">
+                  <apex:outputPanel layout="block" style="float:left;width:280px">
+                    <apex:inputCheckbox selected="{!opt.checked}" onclick="subSiteTypeChange(this, '{!opt.interestLabel}');"/>
+                    <label>{!opt.interestLabel}</label>
+                  </apex:outputPanel>
+                </apex:repeat>
+              </apex:outputPanel>
+            </apex:pageblockSectionItem>
+          </apex:pageBlockSection>
+          
+          <apex:pageBlockSection columns="1" rendered="{!IF(havePCNumber = 'Yes', true, false)}">
+            <apex:pageblockSectionItem dataStyle="padding-bottom:10px">
+              <apex:outputLabel >Are you</apex:outputLabel>
+              <apex:outputPanel styleClass="requiredInput" layout="block">
+                <div class="requiredBlock"></div>
+                <apex:selectRadio value="{!CurrentLead.Acquiring_an_existing_restaurant__c}" layout="pageDirection">
+                  <apex:selectOption itemValue="Acquiring an existing restaurant?" itemLabel="Acquiring an existing restaurant?"/>
+                  <apex:selectOption itemValue="Requesting to be added as a partner to an existing franchisee organization?" itemLabel="Requesting to be added as a partner to an existing franchisee organization?"/>
+                </apex:selectRadio>
+              </apex:outputPanel>
+            </apex:pageblockSectionItem>
+          </apex:pageBlockSection> 
+          
+          <!--
+          <apex:pageBlockSection columns="1" rendered="{!IF(CurrentLead.Build_or_Buy__c = ('Building a new restaurant'), true, false)}">
+          -->
+          
+          <!--
+          <apex:pageBlockSection columns="1" rendered="{!showCompleteForm}">
+            <p>Not every location within your desired area(s) of interest may be open for Dunkin' Donuts or Baskin-Robbins development at this time.  If areas that interest you are not included on the list at this time, you can check that location's availability by calling: (781) 737-####.</p>
+          </apex:pageBlockSection>
+          -->
+          
+          <apex:pageBlockSection columns="1" id="pbSearch" rendered="{!showCompleteForm}">
+            <apex:pageBlockSection id="pbsPCounty" columns="3" title="Please select your first city of interest" collapsible="false" rendered="{!IF(CurrentLead.Build_or_Buy__c = ('Building a new restaurant'), true, false)}">
+              <apex:pageblockSectionItem id="pbs0" >
+                <apex:outputLabel >Select State/Province:</apex:outputLabel>
+                <apex:outputPanel styleClass="requiredInput" layout="block">
+                  <div class="requiredBlock"></div>
+                  <apex:selectList id="state" multiselect="false" size="1" value="{!county.State_Province__c}" onchange="search();">
+                    <apex:selectOptions value="{!states}" />
+                  </apex:selectList>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <apex:pageblockSectionItem id="pbs1">
+                <apex:outputPanel >
+                  <apex:outputText value="Search By City:" rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}"/>
+                  <a class="tooltip" href="javascript:void(0);">
+                                <apex:image url="{!URLFOR($Resource.DunkinSiteResources, 'images/help.JPG')}"/>
+                                <span>{!$ObjectType.County__c.Fields.Concatenated_List_of_Cities__c.inlineHelpText}</span>
+                              </a>
+                  <apex:outputText value="City:" rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', true, false)}"/>
+                </apex:outputPanel>
+                <apex:outputPanel id="pnl1">
+                  <apex:inputText id="city" value="{!selectedCity}"/>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <apex:commandButton value="Search" onclick="search();return false;" rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}"/>
+              <apex:pageblockSectionItem rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}">
+                <apex:outputLabel >Select County:
+                <a class="tooltip" href="javascript:void(0);">
+                                <apex:image url="{!URLFOR($Resource.DunkinSiteResources, 'images/help.JPG')}"/>
+                                <span>{!$ObjectType.County__c.Fields.Concatenated_List_of_Cities__c.inlineHelpText}</span>
+                              </a>
+                 </apex:outputLabel>
+                <apex:outputPanel id="pnlPCounty" styleClass="requiredInput" layout="block">
+                  <div class="requiredBlock"></div>
+                  <apex:selectList multiselect="false" size="1" value="{!CurrentLead.Primary_State_County_Interest__c}" onchange="pCountyChange(this.value, 'primary');">
+                    <apex:selectOptions value="{!listCounties}" />
+                  </apex:selectList>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <script>
+                // just to make the field in proper align
+              </script>
+            </apex:pageBlockSection>
+            <apex:outputPanel id="pnlPCountyMessage" layout="block" style="margin-left: 122px;">
+              <div class="errorMsg" style="display:{!IF(countyError,'','none')}">
+                <div class="requiredBlock"></div>
+                <strong>Error:</strong> {!primaryCountyError}
+              </div>
+              <p><apex:outputText value="{!primaryCountyMsg}" escape="false"/></p>
+            </apex:outputPanel>
+            
+            <apex:pageBlockSection id="pbsSCounty" columns="3" title="Click the arrow to the left if you want to add a Second Area of Interest" collapsible="true" rendered="{!IF(CurrentLead.Build_or_Buy__c = ('Building a new restaurant'), true, false)}">
+               <apex:pageblockSectionItem id="pbs0Secondary">
+                <apex:outputLabel >Select State/Province:</apex:outputLabel>
+                <apex:selectList id="stateSecondary" multiselect="false" size="1" value="{!secondaryCounty.State_Province__c}" onchange="searchSecondary();">
+                    <apex:selectOptions value="{!states}" />
+                </apex:selectList>
+              </apex:pageblockSectionItem>
+              <apex:pageblockSectionItem id="pbs1Secondary">
+                <apex:outputPanel >
+                  <apex:outputText value="Search By City:" rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}"/>
+                  <apex:outputText value="City:" rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', true, false)}"/>
+                </apex:outputPanel>
+                <apex:outputPanel id="pnl1Secondary">
+                  <apex:inputText id="citySecondary" value="{!selectedSecondaryCity}"/>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <apex:commandButton value="Search" onclick="searchSecondary();return false;" rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}"/>
+              <apex:pageblockSectionItem rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}">
+                <apex:outputLabel >Select County:</apex:outputLabel>
+                <apex:outputPanel id="pnlSCounty">
+                  <apex:selectList multiselect="false" size="1" value="{!CurrentLead.Secondary_State_County_Interest__c}" onchange="sCountyChange(this.value, 'secondary');">
+                    <apex:selectOptions value="{!listSecondaryCounties}"/>
+                  </apex:selectList>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <script>
+                if('{!hideSCounty}' == 'true'){
+                  twistSection(document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsSCounty').childNodes[0].childNodes[0]);
+                }
+              </script>
+            </apex:pageBlockSection>
+            <apex:outputPanel id="pnlSCountyMessage" layout="block" style="margin-left: 122px;">
+              <p><apex:outputText value="{!secCountyMsg}" escape="false"/></p>
+            </apex:outputPanel>
+            
+            <apex:pageBlockSection id="pbsTCounty" columns="3" title="Click the arrow to the left if you want to add a Third Area of Interest" collapsible="true" rendered="{!IF(CurrentLead.Build_or_Buy__c = ('Building a new restaurant'), true, false)}">
+              <apex:pageblockSectionItem id="pbs0Tertiary">
+                <apex:outputLabel >Select State/Province:</apex:outputLabel>
+                <apex:selectList id="stateTertiary" multiselect="false" size="1" value="{!tertiaryCounty.State_Province__c}" onchange="searchTertiary();">
+                    <apex:selectOptions value="{!states}" />
+                </apex:selectList>
+              </apex:pageblockSectionItem>
+              <apex:pageblockSectionItem id="pbs1Tertiary">
+                <apex:outputPanel >
+                  <apex:outputText value="Search By City:" rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}"/>
+                  <apex:outputText value="City:" rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', true, false)}"/>
+                </apex:outputPanel>
+                <apex:outputPanel id="pnl1Tertiary">
+                  <apex:inputText id="cityTertiary" value="{!selectedTertiaryCity}"/>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <apex:commandButton value="Search" onclick="searchTertiary();return false;" rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}"/>
+              <apex:pageblockSectionItem rendered="{!IF(CurrentLead.Country_Interest__c = 'Canada', false, true)}">
+                <apex:outputLabel >Select County:</apex:outputLabel>
+                <apex:outputPanel id="pnlTCounty">
+                  <apex:selectList multiselect="false" size="1" value="{!CurrentLead.Tertiary_State_County_Interest__c}" onchange="tCountyChange(this.value, 'tertiary');">
+                    <apex:selectOptions value="{!listTertiaryCounties}"/>
+                  </apex:selectList>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <script>
+                if('{!hideTCounty}' == 'true'){
+                  twistSection(document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsTCounty').childNodes[0].childNodes[0]);
+                }
+              </script>
+            </apex:pageBlockSection>
+            <apex:outputPanel id="pnlTCountyMessage" layout="block" style="margin-left: 122px;">
+              <p><apex:outputText value="{!terCountyMsg}" escape="false"/></p>
+            </apex:outputPanel>
+          </apex:pageBlockSection>
+          
+          <!---------------------------------------------------- SECTION : GENERAL INFORMATION ---------------------------------------------------->
+          <!-- STARTS 
+          <apex:outputPanel style="display:{!IF(OR(showCompleteForm, (CurrentLead.Build_or_Buy__c = 'Purchasing an existing restaurant')), '', 'none')}">
+          -->
+          <apex:outputPanel style="display:{!IF(showCompleteForm, '', 'none')}">
+            <apex:pageBlockSection id="pbsGenInfor" columns="1" title="General Information" collapsible="false">
+              <!-- SECTION : CONTACT INFORMATION -->
+              <!-- START -->
+              <apex:pageBlockSection columns="2" title="Contact Information" collapsible="false" id="pbsContInfor">
+                <apex:outputPanel layout="block" style="margin-left:0px">
+                  <table style="width:100%;">
+                    
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >First Name</apex:outputLabel></td>
+                      <td class="dataCol first"><apex:inputField value="{!CurrentLead.FirstName}" required="true"/></td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >Last Name</apex:outputLabel></td>
+                      <td class="dataCol first"><apex:inputField value="{!CurrentLead.LastName}" required="true"/></td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >Street</apex:outputLabel></td>
+                      <td class="dataCol first"><apex:inputField value="{!CurrentLead.Street}" required="true"/></td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >City</apex:outputLabel></td>
+                      <td class="dataCol first"><apex:inputField value="{!CurrentLead.City}" required="true"/></td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >State/Province</apex:outputLabel></td>
+                      <td class="dataCol first">
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                          <div class="requiredBlock"></div>
+                          <apex:selectList multiselect="false" size="1" value="{!CurrentLead.State_Province__c}">
+                            <apex:selectOptions value="{!states}" />
+                          </apex:selectList>
+                          <div class="errorMsg" style="display:{!IF(AND(errorOnPage2, ISBLANK(CurrentLead.State_Province__c)),'','none')}">
+                            <strong>Error:</strong> You must select a value 
+                          </div>
+                        </apex:outputPanel>
+                        <!-- <apex:inputField value="{!CurrentLead.State_Province__c}" required="true"/>--></td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >Zip/Postal Code</apex:outputLabel></td>
+                      <td class="dataCol first"><apex:inputField value="{!CurrentLead.PostalCode}" required="true"/></td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >Date of Birth</apex:outputLabel></td>
+                      <td class="dataCol first">
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                          <div class="requiredBlock"></div>
+                          <apex:inputField id="dob" value="{!CurrentLead.date_of_birth__c}" required="true" onclick="document.getElementById('datePicker').style.display='none';"/>
+                          <div class="errorMsg" style="display:{!IF(isValidDOB,'none','')}">
+                            <strong>Error:</strong> You must be at least 18 years old to apply. 
+                          </div>
+                        </apex:outputPanel>
+                      </td>
+                    </tr>
+                    <tr>&nbsp;</tr>
+                    <tr>&nbsp;</tr>
+                    <tr>&nbsp;</tr>
+                    <tr>&nbsp;</tr>
+                    <tr id="fldNetWorth">
+                        <td class="labelCol first">
+                            <apex:outputPanel >
+                                <apex:outputLabel value="TEST" /> 
+                                <a class="tooltip" href="javascript:void(0);">
+                                <apex:image url="{!URLFOR($Resource.DunkinSiteResources, 'images/help.JPG')}"/>
+                                <span>{!$ObjectType.Lead.Fields.What_is_your_total_net_worth__c.inlineHelpText}</span>
+                              </a>
+                            </apex:outputPanel>
+                        </td>
+                        <td class="dataCol first">
+                            <apex:outputPanel styleClass="requiredInput" layout="block" style="float:left;">
+                            <div class="requiredBlock"></div>
+                             <apex:selectRadio id="selTotalWorth" style="float:left;" value="{!CurrentLead.What_is_your_total_net_worth__c}" layout="pageDirection" >
+                                <apex:selectOption itemValue="125000" itemLabel="Less than $125,000"/>
+                                <apex:selectOption itemValue="250000" itemLabel="$125,000 - $250,000"/>
+                                <apex:selectOption itemValue="500000" itemLabel="$250,000 - $500,000"/>
+                                <apex:selectOption itemValue="750000" itemLabel="$500,000 - $750,000"/>
+                                <apex:selectOption itemValue="1000000" itemLabel="$750,000-$1,000,000"/>
+                                <apex:selectOption itemValue="1500000" itemLabel="$1,000,000-$1,500,000"/>
+                                <apex:selectOption itemValue="2000000" itemLabel="$1,500,000-$2,000,000"/>
+                                <apex:selectOption itemValue="2000001" itemLabel="$2,000,000+"/>
+                              </apex:selectRadio>
+                           
+                            </apex:outputPanel>
+                        </td>
+                    </tr>
+                    <tr>&nbsp;</tr>
+                    <tr>&nbsp;</tr>
+                    <tr>&nbsp;</tr>
+                    <tr>&nbsp;</tr>
+                    
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel value="TEST"/></td>
+                      <td class="dataCol first">
+                            <apex:outputPanel styleClass="requiredInput" layout="block" style="float:left;">
+                            <div class="requiredBlock"></div>
+                             <apex:selectRadio id="selHospExp" style="float:left;" value="{!CurrentLead.Describe_S_M_F_B_Hospitality_experience__c}" layout="pageDirection" onClick="javascript:if('{!CurrentLead.Describe_S_M_F_B_Hospitality_experience__c}'==this.value){return false;};hospExpOnChangeJS(this, this.value);" >
+                                <apex:selectOption itemValue="Ownership" itemLabel="Ownership"/>
+                                <apex:selectOption itemValue="GM/DM" itemLabel="General/District Manager "/>
+                                <apex:selectOption itemValue="Crew" itemLabel="Crew Member"/>
+                                <apex:selectOption itemValue="None" itemLabel="None"/>
+                                <apex:selectOption itemValue="Other" itemLabel="Other Experience (Describe)"/>
+                              </apex:selectRadio>
+                            
+                            </apex:outputPanel>
+                        </td>
+                    </tr>
+                    <tr><td class="labelCol first"></td><td><apex:inputField id="inputSMFB" value="{!CurrentLead.Describe_S_M_F_B_Hospitality_experience__c}" style="width:180px;height:120px;display:none"/></td></tr>
+                    
+                    
+                    <tr>
+                      <td class="labelCol first"><a href="javascript:void(0);" onclick="openPopupWindow();">Would you like to upload your resume? Please attach</a></td>
+                      <td class="dataCol first"><apex:outputLabel value="{!documentName}" id="resumeName"/></td>
+                    </tr>
+                  </table>
+                  <script>
+                    // to supress onfocus method of Date Of Birth field... we do not need to show the Calender to user.
+                    document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsContInfor:dob').onfocus = new Function(""); 
+                    var res = document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsContInfor:resumeName');
+                    res.innerHTML = document.getElementById('pg:SiteTemplate:frm:inputhdnResumeName').value;
+                  </script>
+                </apex:outputPanel>
+                
+                <apex:outputPanel >
+                  <table style="width:100%;margin-left:10px;">
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >Email</apex:outputLabel></td>
+                      <td class="dataCol first"><apex:inputField value="{!CurrentLead.Email}" id="email" required="true"/></td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >Confirm Email</apex:outputLabel></td>
+                      <td class="dataCol first">
+                        <apex:outputPanel > 
+                          <apex:inputText value="{!confirmEmail}"/>
+                          <div class="errorMsg" style="display:{!IF(isEmailMatchError,'','none')}">
+                            <strong>Error:</strong> Email do not match.
+                          </div>
+                        </apex:outputPanel>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >Primary Phone</apex:outputLabel></td>
+                      <td class="dataCol first">
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                          <div class="requiredBlock"></div>
+                          <!--
+                          <apex:inputField value="{!CurrentLead.Primary_Phone__c}" required="true"/>
+                          -->
+                          <apex:selectRadio id="selPriPhone" value="{!CurrentLead.Primary_Phone__c}" layout="pageDirection">
+                            <apex:selectOption itemValue="Office Phone" itemLabel="Office Phone"/>
+                            <apex:selectOption itemValue="Cell Phone" itemLabel="Cell Phone"/>
+                            <apex:selectOption itemValue="Home Phone" itemLabel="Home Phone"/>
+                          </apex:selectRadio>
+                          <div class="errorMsg" style="display:{!IF(isPrimaryPhoneRequiredError,'','none')}">
+                            <strong>Error:</strong> {!errorMessage}
+                          </div>
+                        </apex:outputPanel>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >Office Phone</apex:outputLabel></td>
+                      <td class="dataCol first"><apex:inputField value="{!CurrentLead.Office_Phone__c}" required="false"/></td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >Cell Phone</apex:outputLabel></td>
+                      <td class="dataCol first"><apex:inputField value="{!CurrentLead.Cell_Phone__c}" required="false"/></td>
+                    </tr>
+                    <tr>
+                      <td class="labelCol first"><apex:outputLabel >Home Phone</apex:outputLabel></td>
+                      <td class="dataCol first"><apex:inputField value="{!CurrentLead.Home_Phone__c}" required="false"/></td>
+                    </tr>
+                    <tr>&nbsp;</tr>
+                    <tr>&nbsp;</tr>
+                    <tr>&nbsp;</tr>
+                    
+                    <tr id="fldLqdAssests">
+                      <td class="labelCol first">
+                        <apex:outputPanel >
+                            <div class="requiredBlock"></div>
+                          <apex:outputLabel value="TEST" />
+                          <a class="tooltip" href="javascript:void(0);">
+                            <apex:image url="{!URLFOR($Resource.DunkinSiteResources, 'images/help.JPG')}"/>
+                            <span>{!$ObjectType.Lead.Fields.How_much_liquid_assets_can_you_invest__c.inlineHelpText}</span>
+                          </a>
+                        </apex:outputPanel>
+                      </td>
+                      <td class="dataCol first">
+                       <apex:outputPanel styleClass="requiredInput" layout="block" style="float:left;">
+                            <div class="requiredBlock"></div>
+                             <apex:selectRadio id="selLiquid" style="float:left;" value="{!CurrentLead.How_much_liquid_assets_can_you_invest__c}" layout="pageDirection">
+                                <apex:selectOption itemValue="125000" itemLabel="Less than $125,000"/>
+                                <apex:selectOption itemValue="250000" itemLabel="$125,000 - $250,000"/>
+                                <apex:selectOption itemValue="500000" itemLabel="$250,000 - $500,000"/>
+                                <apex:selectOption itemValue="750000" itemLabel="$500,000 - $750,000"/>
+                                <apex:selectOption itemValue="1000000" itemLabel="$750,000 - $1,000,000"/>
+                                <apex:selectOption itemValue="1500000" itemLabel="$1,000,000 - $1,500,000"/>
+                                <apex:selectOption itemValue="2000000" itemLabel="$1,500,000 - $2,000,000"/>
+                                <apex:selectOption itemValue="2000001" itemLabel="$2,000,000+"/>
+                              </apex:selectRadio>                          
+                            
+                          </apex:outputPanel>
+                       </td>
+                    </tr>
+                  </table>
+                </apex:outputPanel>
+              </apex:pageBlockSection>
+                        
+             
+            <!-- SECTION : CORPORATE INFORMATION -->
+            <!-- START -->
+            <apex:pageBlockSection id="pbsCorpInfo" columns="1" title="Corporate Information" collapsible="false">
+              <apex:pageblockSectionItem >
+                <apex:outputLabel >Applying as part of a corporation?</apex:outputLabel>
+                <apex:selectRadio value="{!CurrentLead.Applying_as_part_of_a_corporation__c}" onclick="javascript:if('{!CurrentLead.Applying_as_part_of_a_corporation__c}'==this.value){return false;};corpOnChange(this.value)">
+                  <apex:selectOption itemValue="Yes" itemLabel="Yes"/>
+                  <apex:selectOption itemValue="No" itemLabel="No"/>
+                </apex:selectRadio>
+              </apex:pageblockSectionItem>
+              <apex:inputField value="{!CurrentLead.Company}" rendered="{!IF(CurrentLead.Applying_as_part_of_a_corporation__c = 'Yes', true, false)}" required="true"/>
+              <apex:inputField value="{!CurrentLead.Company_Street_Address__c}" rendered="{!IF(CurrentLead.Applying_as_part_of_a_corporation__c = 'Yes', true, false)}" required="true"/>
+              <apex:inputField value="{!CurrentLead.Company_City__c}" rendered="{!IF(CurrentLead.Applying_as_part_of_a_corporation__c = 'Yes', true, false)}" required="true"/>
+              <apex:inputField value="{!CurrentLead.Company_State__c}" rendered="{!IF(CurrentLead.Applying_as_part_of_a_corporation__c = 'Yes', true, false)}" required="true"/>
+              <apex:inputField value="{!CurrentLead.Company_Zip_Postal_Code__c}" rendered="{!IF(CurrentLead.Applying_as_part_of_a_corporation__c = 'Yes', true, false)}" required="true"/>
+              <apex:inputField value="{!CurrentLead.Website}" rendered="{!IF(CurrentLead.Applying_as_part_of_a_corporation__c = 'Yes', true, false)}"/>
+            </apex:pageBlockSection>
+            <!-- ENDS -->
+            <br/>
+            <!-- SECTION : PARTNER INFORMATION -->
+            <!-- START -->
+            <apex:pageBlockSection id="pbsPartnerInfo" columns="1" title="Partner Information" collapsible="false" rendered="{!IF(showPartnerInfoSection, true, false)}">
+              <apex:actionStatus startText="Please wait..." stopText="" startStyle="color:red;" id="partnerStatus"/>
+              <apex:pageblockSectionItem >
+                <apex:outputLabel >Will you have partners with this application?</apex:outputLabel>
+                <apex:selectRadio value="{!CurrentLead.Will_you_have_partners__c}" onclick="javascript:if('{!CurrentLead.Will_you_have_partners__c}'==this.value){return false;};partnerOnChange(this.value)">
+                  <apex:selectOption itemValue="Yes" itemLabel="Yes"/>
+                  <apex:selectOption itemValue="No" itemLabel="No"/>
+                </apex:selectRadio>
+              </apex:pageblockSectionItem>
+              <button type="button" class="btn" onclick="showPartnerForm();" style="display:{!IF(AND(CurrentLead.Will_you_have_partners__c = 'Yes', NOT(showPartner)), '', 'none')}">Add Partner</button>
+              <apex:pageblockSectionItem id="itemPartFirstName" rendered="{!showPartner}">
+                <apex:outputlabel value="Partner First Name"/>
+                <apex:outputPanel styleClass="requiredInput" layout="block">
+                  <div class="requiredBlock"/>
+                  <apex:inputField id="partFirstName" value="{!CurrentPA.Partner_First_name__c}" required="true"/>
+                  <div class="errorMsg" style="display:{!IF(AND(ISBLANK(TRIM(CurrentPA.Partner_First_name__c)), isPartnerFormError),'','none')}">
+                    <strong>Error:</strong> You must enter a value
+                  </div>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <apex:pageblockSectionItem id="itemPartLastName" rendered="{!showPartner}">
+                <apex:outputlabel value="Partner Last Name"/>
+                <apex:outputPanel styleClass="requiredInput" layout="block">
+                  <div class="requiredBlock"/>
+                  <apex:inputField id="partLastName" value="{!CurrentPA.Partner_Last_Name__c}" required="true"/>
+                  <div class="errorMsg" style="display:{!IF(AND(ISBLANK(TRIM(CurrentPA.Partner_Last_Name__c)), isPartnerFormError),'','none')}">
+                    <strong>Error:</strong> You must enter a value
+                  </div>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <apex:pageblockSectionItem id="itemPartEmail" rendered="{!showPartner}">
+                <apex:outputlabel value="Partner Email"/>
+                <apex:outputPanel styleClass="requiredInput" layout="block">
+                  <div class="requiredBlock"/>
+                  <apex:inputField id="partEmail" value="{!CurrentPA.Partner_Email__c}" required="true"/>
+                  <div class="errorMsg" style="display:{!IF(AND(ISBLANK(TRIM(CurrentPA.Partner_Email__c)), isPartnerFormError),'','none')}">
+                    <strong>Error:</strong> You must enter a value
+                  </div>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <apex:pageblockSectionItem id="itemPartPrimPhone" rendered="{!showPartner}">
+                <apex:outputlabel value="Primary Phone"/>
+                <apex:outputPanel styleClass="requiredInput" layout="block">
+                  <div class="requiredBlock"/>
+                  <apex:inputField id="partPrimPhone" value="{!CurrentPA.Primary_Phone__c}" required="true"/>
+                  <div class="errorMsg" style="display:{!IF(AND(ISBLANK(TRIM(CurrentPA.Primary_Phone__c)), isPartnerFormError),'','none')}">
+                    <strong>Error:</strong> You must enter a value
+                  </div>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <apex:inputField value="{!CurrentPA.Secondary_Phone__c}" rendered="{!showPartner}"/>
+              <button type="button" class="btn" onclick="addPartnerjs();" style="display:{!IF(showPartner, '', 'none')}">Add To List</button>
+              <apex:outputPanel id="pnlExistingPartnerInfo">
+                <apex:pageBlockSection columns="1" title="Existing Partners" collapsible="false" rendered="{!IF(hasPartners, true, false)}">
+                  <apex:pageBlockTable value="{!listApplicationPartners}" var="appPartner">
+                    <apex:column value="{!appPartner.partner.Partner_First_name__c}"/>
+                    <apex:column value="{!appPartner.partner.Partner_Last_Name__c}"/>
+                    <apex:column value="{!appPartner.partner.Partner_Email__c}"/>
+                    <apex:column value="{!appPartner.partner.Primary_Phone__c}"/>
+                    <apex:column value="{!appPartner.partner.Secondary_Phone__c}"/>
+                    <apex:column >
+                      <apex:commandLink value="Remove" action="{!removePartner}" status="partnerStatus" reRender="pnlExistingPartnerInfo" immediate="true">
+                        <apex:param name="currentIndex" assignTo="{!removeIndex}" value="{!appPartner.Index}" />
+                      </apex:commandLink>
+                    </apex:column>
+                  </apex:pageBlockTable>
+                </apex:pageBlockSection>
+              </apex:outputPanel>
+            </apex:pageBlockSection>
+            <!-- SECTION : PARTNER INFORMATION -->
+            <!-- ENDS -->
+              <br/>
+            <apex:pageBlockSection id="pbsHear" columns="1" >
+              <apex:pageblockSectionItem id="genItem1a"  >
+                <apex:outputLabel >How did you hear about us?</apex:outputLabel>
+                <apex:outputPanel >
+                  <apex:selectCheckboxes id="inputHear" value="{!selectedHowDidHearAboutus}" layout="pageDirection" onclick="HowdidyouhearOnChange1(this);" styleClass="hearCheck">
+                    <apex:selectOptions value="{!listHowDidHearAboutus}"/>
+                  </apex:selectCheckboxes>
+                  <div class="errorMsg" style="display:{!IF(AND(errorOnPage2, (currentLead.How_did_you_hear_about_us__c = '')),'','none')}">
+                    <div class="requiredBlock"></div>
+                    <strong>Error:</strong> You must select a value 
+                  </div>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <br/>
+              <apex:pageblockSectionItem >
+                <apex:outputLabel >Campaign Code <br/>(ex. CC-00123)</apex:outputLabel>
+                <apex:outputPanel >
+                    <apex:inputText value="{!selectedCampaign}"></apex:inputText>
+                </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              
+                <apex:pageblockSectionItem id="genItem2">
+                  <apex:outputPanel id="pnlRefered">
+                    <apex:outputText value="Who referred you?"/>
+                    <a class="tooltip" href="javascript:void(0);">
+                      <apex:image url="{!URLFOR($Resource.DunkinSiteResources, 'images/help.JPG')}"/>
+                      <span>{!$ObjectType.Lead.Fields.Who_referred_you__c.inlineHelpText}</span>
+                    </a>
+                  </apex:outputPanel>
+                  <apex:outputPanel id="pnlInptRef" styleClass="requiredInput" layout="block">
+                    <div class="requiredBlock"/>
+                    <apex:inputField id="inputRefered" value="{!CurrentLead.Who_referred_you__c}"/>
+                    <div class="errorMsg" style="display:{!IF(AND(errorOnPage2, ISBLANK(TRIM(CurrentLead.Who_referred_you__c))),'','none')}">
+                      <strong>Error:</strong> You must select a value 
+                    </div>
+                  </apex:outputPanel>
+                </apex:pageblockSectionItem>
+                <script>
+                  showWhoReferDiv();
+                </script>
+              </apex:pageBlockSection>
+            
+            </apex:pageBlockSection>
+          </apex:outputPanel>
+        </apex:pageBlock>        
+      <script>
+          
+          function addPartnerjs(){
+            var lastName = document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsPartnerInfo:itemPartLastName:partLastName').value;
+            var firstName = document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsPartnerInfo:itemPartFirstName:partFirstName').value;
+            var email = document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsPartnerInfo:itemPartEmail:partEmail').value;
+            var priPhone = document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsPartnerInfo:itemPartPrimPhone:partPrimPhone').value;
+            addPartner(lastName, firstName, email, priPhone);
+          }
+          
+          function search() {
+            var state = '';
+            var city = '';
+            if(document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsPCounty:pbs0:state') != null)
+              state = document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsPCounty:pbs0:state').value;
+            if(document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsPCounty:pbs1:city') != null)
+              city = document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsPCounty:pbs1:city').value;
+            //var brandInterest = getBrandIntereset();
+            var existFranchise = getAreYouExistingFranchisee();
+            var siteTypeIntrst = getSiteTypeInterest();
+            
+            searchCounty(state, city, existFranchise, siteTypeIntrst, '');
+          }
+          
+          function searchSecondary() {
+            var state = '';
+            var city = '';
+            if(document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsSCounty:pbs0Secondary:stateSecondary') != null )
+              state = document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsSCounty:pbs0Secondary:stateSecondary').value;
+            if(document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsSCounty:pbs1Secondary:citySecondary') != null)
+              city = document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsSCounty:pbs1Secondary:citySecondary').value;
+            //var brandInterest = getBrandIntereset();
+            var existFranchise = getAreYouExistingFranchisee();
+            var siteTypeIntrst = getSiteTypeInterest();
+            
+            searchSecondaryCounty(state, city, existFranchise, siteTypeIntrst, false, '');
+          }
+          
+          function searchTertiary() {
+            var state = '';
+            var city = '';
+            if(document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsTCounty:pbs0Tertiary:stateTertiary') != null)
+              state = document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsTCounty:pbs0Tertiary:stateTertiary').value;
+            if(document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsTCounty:pbs1Tertiary:cityTertiary') != null)
+              city = document.getElementById('pg:SiteTemplate:frm:pb:pbSearch:pbsTCounty:pbs1Tertiary:cityTertiary').value;
+            //var brandInterest = getBrandIntereset();
+            var existFranchise = getAreYouExistingFranchisee();
+            var siteTypeIntrst = getSiteTypeInterest();
+            
+            searchTertiaryCounty(state, city, existFranchise, siteTypeIntrst, false, '');
+          }
+          
+          
+          function getBrandIntereset() {
+            var brandInterest = '';
+            var brand1 = document.getElementById('pg:SiteTemplate:frm:pb:pbsOpportunity:itemBrndIntrst:selBrndIntrst:0');
+            var brand2 = document.getElementById('pg:SiteTemplate:frm:pb:pbsOpportunity:itemBrndIntrst:selBrndIntrst:1');
+            if(brand1 != null && brand1.checked){
+              brandInterest = 'Dunkin\' Donuts;';
+            }
+            if(brand2 != null && brand2.checked) {
+              brandInterest += 'Baskin-Robbins;';
+            }
+            return brandInterest
+          }
+          
+          function getAreYouExistingFranchisee() {
+            var existFranchise = '';
+            var franc1 = document.getElementById('pg:SiteTemplate:frm:pb:pbsOpportunity:itemFranch:selFranc:0');
+            var franc2 = document.getElementById('pg:SiteTemplate:frm:pb:pbsOpportunity:itemFranch:selFranc:1');
+            if(franc1 != null && franc1.checked){
+              existFranchise = 'Yes';
+            }else if(franc2 != null && franc2.checked) {
+              existFranchise = 'No';
+            }
+            return existFranchise
+          }
+          
+          function getSiteTypeInterest() {
+            var siteTypeIntrst = '';
+            var int1 = document.getElementById('pg:SiteTemplate:frm:pb:pbsOpportunity:itemDev:selDev:0');
+            var int2 = document.getElementById('pg:SiteTemplate:frm:pb:pbsOpportunity:itemDev:selDev:1');
+            if(int1 != null && int1.checked){
+              siteTypeIntrst = 'Traditional Locations';
+            }else if(int2 != null && int2.checked) {
+              siteTypeIntrst = 'Non-Traditional Locations';
+            }
+            return siteTypeIntrst;
+          }
+          
+          function HowdidyouhearOnChange1(obj){
+            if(obj.value == 'Referred by Existing Franchisee' && obj.checked){
+              showFld = true;
+              document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlRefered').style.display = '';
+              document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlInptRef').style.display = '';
+            }else if(obj.value == 'Referred by Existing Franchisee' && !obj.checked){
+              showFld = false;
+              document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlRefered').style.display = 'none';
+              document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsHear:genItem2:pnlInptRef').style.display = 'none';
+            }
+          }
+          
+          
+          function netWorthOnChangeJS(obj, val){
+          
+          
+            document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsContInfor:selTotalWorth.value').value = val 
+          
+          
+            }
+          
+          
+          function subSiteTypeChange(obj, val) {
+            if(val == 'Other - Not listed' && obj.checked){
+              showGeneralFlds = true;
+              if(document.getElementById('fldNetWorth') != null ) 
+                document.getElementById('fldNetWorth').style.display = 'none';
+              if(document.getElementById('fldLqdAssests') != null ) 
+                document.getElementById('fldLqdAssests').style.display = 'none';
+            }else if(val == 'Other - Not listed' && !obj.checked){
+              showGeneralFlds = false;
+              if(document.getElementById('fldNetWorth') != null ) 
+                document.getElementById('fldNetWorth').style.display = '';
+              if(document.getElementById('fldLqdAssests') != null ) 
+                document.getElementById('fldLqdAssests').style.display = '';
+            }
+            var currentVals = document.getElementById('pg:SiteTemplate:frm:inputhdnSubSiteIntrst').value;
+            if(obj.checked){
+              if(currentVals.indexOf(val) < 0)
+                currentVals += val + ';';
+            }else{
+              if(currentVals.indexOf(val) >= 0)
+                currentVals = currentVals.replace(val + ';', '');
+            }
+            
+            document.getElementById('pg:SiteTemplate:frm:inputhdnSubSiteIntrst').value = currentVals;
+          }
+          
+          function hospExpOnChangeJS(obj, val){
+          //alert('got here' + 'val =' + val + 'obj.checked = ' +  obj.checked);
+          
+          if(val == 'Other' && obj.checked){
+              //show the 'other' box
+              document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsContInfor:inputSMFB').value = '';
+              document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsContInfor:inputSMFB').style.display = '';
+            }else {
+              document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsContInfor:inputSMFB').style.display = 'none';
+              //document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsContInfor:inputSMFB').value = '';
+              document.getElementById('pg:SiteTemplate:frm:pb:pbsGenInfor:pbsContInfor:inputSMFB').value = val;
+              
+            }
+          
+          }
+          
+         
+          function openPopupWindow(){
+            var url = '{!sitePrefix}/UploadResume';
+            var width  = 450;
+            var height = 85;
+            var left   = (screen.width  - width)/2;
+            var top    = (screen.height - height)/2;
+            var params = 'width='+width+', height='+height;
+            params += ', top='+top+', left='+left;
+            params += ', directories=no';
+            params += ', location=no';
+            params += ', menubar=no';
+            params += ', resizable=no';
+            params += ', scrollbars=no';
+            params += ', status=no';
+            params += ', toolbar=no';
+            var newwin = window.open(url,'', params);
+            if (window.focus) {
+              newwin.focus();
+            }
+            return false;
+          }
+          window.onload = showWhoReferDiv;
+        </script>
+        <apex:inputHidden value="{!documentId}" id="inputhdn"/>
+        
+        <apex:inputHidden value="{!selectedSiteInterests}" id="inputhdnSubSiteIntrst"/>
+      </apex:form>
+    </apex:define>
+    
+    <apex:define name="footer">
+      <c:dunkinsitefooter currentBrand="{!currentBrand}" brandAvailable="true"/>
+    </apex:define>
+    
+  </apex:composition>
+</apex:page>

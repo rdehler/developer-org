@@ -1,0 +1,8 @@
+<apex:page standardController="ObjectMaster__c" extensions="RevenueBookController">
+<apex:form >
+<apex:commandbutton action="{!save}" rerender="output" />
+<apex:outputPanel id="output">
+<apex:outputField value="{!ObjectMaster__c.Id}"/>
+</apex:outputPanel>
+</apex:form>
+</apex:page>
